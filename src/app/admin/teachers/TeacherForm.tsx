@@ -1,0 +1,75 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { toast } from "sonner";
+
+interface Props {
+  initial?: {
+    name: string;
+    email: string;
+    phone: string | null;
+    specialization: string;
+    qualification: string | null;
+    experienceYears: number;
+    bio: string | null;
+  };
+  action: (formData: FormData) => Promise<{ error?: string } | void>;
+  submitLabel: string;
+}
+
+export function TeacherForm({ initial, action, submitLabel }: Props) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(formData: FormData) {
+    setLoading(true);
+    const result = await action(formData);
+    setLoading(false);
+    if (result?.error) toast.error(result.error);
+  }
+
+  return (
+    <form action={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Name *</label>
+          <input name="name" type="text" required defaultValue={initial?.name} className="mt-1 w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2 border" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Email *</label>
+          <input name="email" type="email" required defaultValue={initial?.email} className="mt-1 w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2 border" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Phone</label>
+          <input name="phone" type="text" defaultValue={initial?.phone || ""} className="mt-1 w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2 border" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Password {initial ? "(leave blank to keep)" : "*"}</label>
+          <input name="password" type="password" required={!initial} className="mt-1 w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2 border" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Specialization *</label>
+          <input name="specialization" type="text" required defaultValue={initial?.specialization} className="mt-1 w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2 border" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Qualification</label>
+          <input name="qualification" type="text" defaultValue={initial?.qualification || ""} className="mt-1 w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2 border" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Experience (years)</label>
+          <input name="experienceYears" type="number" min="0" defaultValue={initial?.experienceYears ?? 0} className="mt-1 w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2 border" />
+        </div>
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700">Bio</label>
+          <textarea name="bio" rows={3} defaultValue={initial?.bio || ""} className="mt-1 w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2 border" />
+        </div>
+      </div>
+      <div className="flex justify-end gap-2 pt-4 border-t">
+        <Link href="/admin/teachers" className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</Link>
+        <button type="submit" disabled={loading} className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+          {loading ? "Saving..." : submitLabel}
+        </button>
+      </div>
+    </form>
+  );
+}
