@@ -7,11 +7,12 @@ async function getSettings() {
   const map: Record<string, string> = {};
   for (const s of settings) map[s.key] = s.value || "";
   return {
-    instituteName: map.institute_name || "Mastermoosai",
-    subtitle: map.institute_subtitle || "Training Institute",
+    instituteName: map.site_name || map.institute_name || "Mastermoosai",
+    subtitle: map.site_tagline || map.institute_subtitle || "Training Institute",
     contactEmail: map.contact_email || "info@mastermoosai.com",
     contactPhone: map.contact_phone || "+880 1234-567890",
     address: map.address || "Dhaka, Bangladesh",
+    logo: map.logo || "",
   };
 }
 
@@ -47,9 +48,16 @@ export default async function PublicLayout({ children }: { children: React.React
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">M</span>
-              </div>
+              {settings.logo ? (
+                <div className="w-10 h-10 rounded-lg overflow-hidden bg-white border border-gray-200">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={settings.logo} alt={settings.instituteName} className="w-full h-full object-contain" />
+                </div>
+              ) : (
+                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">M</span>
+                </div>
+              )}
               <div>
                 <span className="text-xl font-bold text-dark font-sans">{settings.instituteName}</span>
                 <span className="block text-[10px] text-gray-warm -mt-1 tracking-wider uppercase">{settings.subtitle}</span>
@@ -90,9 +98,16 @@ export default async function PublicLayout({ children }: { children: React.React
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">M</span>
-                </div>
+                {settings.logo ? (
+                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-white border border-white/10">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={settings.logo} alt={settings.instituteName} className="w-full h-full object-contain" />
+                  </div>
+                ) : (
+                  <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">M</span>
+                  </div>
+                )}
                 <span className="text-xl font-bold font-sans">{settings.instituteName}</span>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">

@@ -34,6 +34,19 @@ export function SettingsForm({ settings, action }: Props) {
     </div>
   );
 
+  const Textarea = ({ name, label, placeholder, rows = 3 }: { name: string; label: string; placeholder?: string; rows?: number }) => (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+      <textarea
+        name={name}
+        rows={rows}
+        defaultValue={settings[name] || ""}
+        placeholder={placeholder}
+        className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+      />
+    </div>
+  );
+
   return (
     <form action={handleSubmit} className="space-y-5">
       <div className="space-y-5">
@@ -49,6 +62,11 @@ export function SettingsForm({ settings, action }: Props) {
           <Field name="contact_phone" label="Phone" type="tel" placeholder="+880 1777-027856" />
         </div>
         <Field name="address" label="Address" placeholder="Dhaka, Bangladesh" />
+      </div>
+
+      <div className="space-y-5 pt-5 border-t border-gray-100">
+        <h2 className="text-sm font-semibold uppercase text-gray-500 tracking-wide">Payment</h2>
+        <Textarea name="payment_instructions" label="Payment Instructions" placeholder="bKash: 01777-027856 (Personal)..." rows={4} />
       </div>
 
       <div className="space-y-5 pt-5 border-t border-gray-100">
