@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MIMS Next.js
+
+Mastermoosai Institute Management System rebuilt in Next.js 16 + Express-style API routes for Vercel deployment.
+
+## Stack
+
+- **Next.js 16** (App Router, Turbopack, Server Components)
+- **TypeScript**
+- **PostgreSQL** via [Neon](https://neon.tech) (free tier)
+- **Prisma 7** with `pg` adapter
+- **NextAuth.js v5** for auth (credentials provider)
+- **Tailwind CSS v4**
+- **shadcn-style components**
+- **Zod** for validation
+- **React Hook Form** for forms
+- **Sonner** for toasts
+- **Vercel Blob** for file uploads
 
 ## Getting Started
 
-First, run the development server:
+### 1. Set up environment
+
+Copy `.env.example` to `.env` and fill in:
+
+```bash
+DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
+AUTH_SECRET="$(openssl rand -base64 32)"
+NEXTAUTH_URL="http://localhost:3000"
+AUTH_TRUST_HOST=true
+BLOB_READ_WRITE_TOKEN=""
+```
+
+Get a free Postgres database from [Neon](https://neon.tech) — it takes 30 seconds.
+
+### 2. Install + setup database
+
+```bash
+npm install
+npx prisma db push        # Create tables
+npm run db:seed           # Seed admin user + demo data
+```
+
+### 3. Run dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Admin login:** `admin@mims.test` / `password`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deployment
 
-## Learn More
+Connect to Vercel, add environment variables, push to GitHub. That's it.
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+├── app/
+│   ├── (auth)/       # Login, Register
+│   ├── (public)/     # Home, About, Courses, Contact
+│   ├── admin/        # Admin panel (sidebar layout)
+│   ├── teacher/      # Teacher panel
+│   ├── student/      # Student panel
+│   └── api/          # API routes (Express-style)
+├── components/
+│   ├── ui/           # Buttons, Inputs, Cards
+│   ├── layouts/      # Sidebar, Topbar
+│   └── shared/       # DataTable, Pagination, etc
+├── lib/
+│   ├── prisma.ts     # Prisma client singleton
+│   ├── auth.ts       # NextAuth config
+│   └── utils.ts      # Helpers (currency, date)
+└── proxy.ts          # Auth middleware (route protection)
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Migration Status
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This is the Next.js port of the [Laravel MIMS app](https://github.com/zxlcrg/MasterMoosai).
+Currently includes:
+- Auth (login/register/logout)
+- Public website (home, about, courses, instructors, contact)
+- Admin dashboard with stats
+- Admin sidebar layout
+- Database schema mirrored from Laravel project
+- Seed data (admin user, teachers, students, courses, enrollments)

@@ -1,0 +1,325 @@
+// MIMS Next.js Database Schema
+// Mirrors the Laravel schema from D:\ProjectMS\MasterMoosai\database\migrations\
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum CourseCategory {
+  ART
+  SOFTWARE
+}
+
+enum CourseMode {
+  ONLINE
+  OFFLINE
+  HYBRID
+}
+
+enum CourseStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  DROPPED
+  PENDING
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  ONLINE
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+  OVERDUE
+}
+
+enum ClassMode {
+  ONLINE
+  OFFLINE
+}
+
+enum ClassSessionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum MaterialType {
+  DOCUMENT
+  VIDEO
+  LINK
+}
+
+model User {
+  id            Int        @id @default(autoincrement())
+  name          String
+  email         String     @unique
+  emailVerified DateTime?
+  password      String
+  phone         String?
+  avatar        String?
+  status        UserStatus @default(ACTIVE)
+  role          Role       @default(STUDENT)
+  rememberToken String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  student       Student?
+  teacher       Teacher?
+  notifications Notification[]
+  sessions      Session[]
+  accounts      Account[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Student {
+  id             Int       @id @default(autoincrement())
+  userId         Int       @unique
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateOfBirth    DateTime?
+  gender         Gender?
+  address        String?
+  guardianName   String?
+  guardianPhone  String?
+  enrollmentDate DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  enrollments Enrollment[]
+  payments    Payment[]
+  attendances Attendance[]
+}
+
+model Teacher {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialization  String
+  bio             String?
+  qualification   String?
+  experienceYears Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  courses         Course[]
+  teacherPayments TeacherPayment[]
+}
+
+model Course {
+  id            Int            @id @default(autoincrement())
+  title         String
+  slug          String         @unique
+  description   String
+  category      CourseCategory
+  mode          CourseMode
+  durationWeeks Int
+  feeAmount     Decimal        @db.Decimal(10, 2)
+  teacherId     Int?
+  teacher       Teacher?       @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  thumbnail     String?
+  status        CourseStatus   @default(DRAFT)
+  maxStudents   Int?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  enrollments    Enrollment[]
+  classSessions  ClassSession[]
+  materials      CourseMaterial[]
+
+  @@index([status])
+  @@index([category])
+}
+
+model CourseMaterial {
+  id        Int          @id @default(autoincrement())
+  courseId  Int
+  course    Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title     String
+  type      MaterialType
+  filePath  String?
+  url       String?
+  sortOrder Int          @default(0)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model Enrollment {
+  id          Int              @id @default(autoincrement())
+  studentId   Int
+  student     Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  courseId    Int
+  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrolledAt  DateTime         @default(now())
+  status      EnrollmentStatus @default(PENDING)
+  completedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  payments Payment[]
+
+  @@unique([studentId, courseId])
+  @@index([status])
+  @@index([enrolledAt])
+}
+
+model Payment {
+  id              Int           @id @default(autoincrement())
+  enrollmentId    Int
+  enrollment      Enrollment    @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  studentId       Int
+  student         Student       @relation(fields: [studentId], references: [id])
+  amount          Decimal       @db.Decimal(10, 2)
+  paymentDate     DateTime
+  paymentMethod   PaymentMethod @default(CASH)
+  month           String
+  status          PaymentStatus @default(PENDING)
+  referenceNumber String?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([status])
+  @@index([month])
+  @@index([paymentDate])
+}
+
+model TeacherPayment {
+  id              Int           @id @default(autoincrement())
+  teacherId       Int
+  teacher         Teacher       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  amount          Decimal       @db.Decimal(10, 2)
+  paymentDate     DateTime
+  paymentMethod   PaymentMethod @default(CASH)
+  month           String
+  status          PaymentStatus @default(PENDING)
+  referenceNumber String?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([status])
+  @@index([month])
+}
+
+model ClassSession {
+  id           Int                @id @default(autoincrement())
+  courseId     Int
+  course       Course             @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title        String
+  date         DateTime           @db.Date
+  startTime    String
+  endTime      String
+  mode         ClassMode
+  location     String?
+  meetingLink  String?
+  status       ClassSessionStatus @default(SCHEDULED)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  attendances Attendance[]
+
+  @@index([date])
+  @@index([status])
+}
+
+model Attendance {
+  id             Int              @id @default(autoincrement())
+  classSessionId Int
+  classSession   ClassSession     @relation(fields: [classSessionId], references: [id], onDelete: Cascade)
+  studentId      Int
+  student        Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  status         AttendanceStatus @default(PRESENT)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([classSessionId, studentId])
+  @@index([status])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  data      Json
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Setting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
