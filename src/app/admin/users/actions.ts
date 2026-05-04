@@ -26,21 +26,22 @@ const baseSchema = z.object({
 });
 
 export async function createUser(formData: FormData) {
+  const get = (k: string) => (formData.get(k) ?? "") as string;
   const parsed = baseSchema.safeParse({
-    name: formData.get("name"),
-    email: formData.get("email"),
-    phone: formData.get("phone"),
-    password: formData.get("password"),
-    role: formData.get("role"),
-    specialization: formData.get("specialization"),
-    qualification: formData.get("qualification"),
-    experienceYears: formData.get("experienceYears"),
-    bio: formData.get("bio"),
-    dateOfBirth: formData.get("dateOfBirth"),
-    gender: formData.get("gender"),
-    address: formData.get("address"),
-    guardianName: formData.get("guardianName"),
-    guardianPhone: formData.get("guardianPhone"),
+    name: get("name"),
+    email: get("email"),
+    phone: get("phone"),
+    password: get("password"),
+    role: get("role"),
+    specialization: get("specialization"),
+    qualification: get("qualification"),
+    experienceYears: get("experienceYears"),
+    bio: get("bio"),
+    dateOfBirth: get("dateOfBirth"),
+    gender: get("gender"),
+    address: get("address"),
+    guardianName: get("guardianName"),
+    guardianPhone: get("guardianPhone"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const data = parsed.data;
