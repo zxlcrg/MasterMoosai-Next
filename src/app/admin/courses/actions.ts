@@ -9,7 +9,7 @@ import { slugify } from "@/lib/utils";
 const courseSchema = z.object({
   title: z.string().min(2),
   description: z.string().min(2),
-  category: z.enum(["ART", "SOFTWARE"]),
+  categoryId: z.coerce.number().int().optional().or(z.literal("")),
   mode: z.enum(["ONLINE", "OFFLINE", "HYBRID"]),
   durationWeeks: z.coerce.number().int().min(1),
   feeAmount: z.coerce.number().min(0),
@@ -22,7 +22,7 @@ function parse(formData: FormData) {
   return courseSchema.safeParse({
     title: formData.get("title"),
     description: formData.get("description"),
-    category: formData.get("category"),
+    categoryId: formData.get("categoryId"),
     mode: formData.get("mode"),
     durationWeeks: formData.get("durationWeeks"),
     feeAmount: formData.get("feeAmount"),
@@ -46,7 +46,7 @@ export async function createCourse(formData: FormData) {
       title: data.title,
       slug,
       description: data.description,
-      category: data.category,
+      categoryId: data.categoryId ? Number(data.categoryId) : null,
       mode: data.mode,
       durationWeeks: data.durationWeeks,
       feeAmount: data.feeAmount,
@@ -71,7 +71,7 @@ export async function updateCourse(id: number, formData: FormData) {
   const updateData: any = {
     title: data.title,
     description: data.description,
-    category: data.category,
+    categoryId: data.categoryId ? Number(data.categoryId) : null,
     mode: data.mode,
     durationWeeks: data.durationWeeks,
     feeAmount: data.feeAmount,
@@ -80,7 +80,6 @@ export async function updateCourse(id: number, formData: FormData) {
     maxStudents: data.maxStudents ? Number(data.maxStudents) : null,
   };
 
-  // Only update slug if title changed
   if (course.title !== data.title) {
     updateData.slug = slugify(data.title);
   }

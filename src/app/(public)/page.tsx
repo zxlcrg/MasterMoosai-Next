@@ -10,7 +10,7 @@ async function getHomeData() {
     prisma.course.count({ where: { status: "ACTIVE" } }),
     prisma.course.findMany({
       where: { status: "ACTIVE" },
-      include: { teacher: { include: { user: true } } },
+      include: { teacher: { include: { user: true } }, category: true },
       take: 6,
     }),
   ]);
@@ -90,14 +90,20 @@ export default async function HomePage() {
             <h2 className="text-3xl md:text-4xl font-extrabold text-dark font-sans mt-2">Popular Courses</h2>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredCourses.map((course) => (
+            {featuredCourses.map((course) => {
+              const accent = course.category?.color || "#ec4899";
+              return (
               <div key={course.id} className="hover-card bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                <div className={`h-3 w-full ${course.category === "ART" ? "bg-gradient-to-r from-pink-500 to-rose-500" : "bg-gradient-to-r from-blue-500 to-indigo-500"}`}></div>
+                <div className="h-3 w-full" style={{ background: `linear-gradient(90deg, ${accent}, ${accent}dd)` }}></div>
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-3">
-                    <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${course.category === "ART" ? "bg-pink-100 text-pink-700" : "bg-blue-100 text-blue-700"}`}>
-                      {course.category}
-                    </span>
+                    {course.category ? (
+                      <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full" style={{ backgroundColor: accent + "20", color: accent }}>
+                        {course.category.icon ? `${course.category.icon} ` : ""}{course.category.name}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-gray-100 text-gray-500">Uncategorized</span>
+                    )}
                     <span className="text-xs font-medium text-gray-500 capitalize bg-gray-100 px-3 py-1 rounded-full">{course.mode.toLowerCase()}</span>
                   </div>
                   <h3 className="text-lg font-bold text-dark font-sans mb-2">{course.title}</h3>
@@ -117,7 +123,8 @@ export default async function HomePage() {
                   </Link>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

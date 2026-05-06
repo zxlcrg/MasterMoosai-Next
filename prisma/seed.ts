@@ -58,14 +58,27 @@ async function main() {
   }
   console.log(`✓ ${teachers.length} teachers created`);
 
+  // Categories
+  const artCategory = await prisma.category.upsert({
+    where: { slug: "art" },
+    update: {},
+    create: { name: "Art", slug: "art", description: "Creative arts, painting, design, and visual courses", sortOrder: 1, color: "#ec4899", icon: "🎨" },
+  });
+  const softwareCategory = await prisma.category.upsert({
+    where: { slug: "software" },
+    update: {},
+    create: { name: "Software", slug: "software", description: "Programming, web development, and software engineering", sortOrder: 2, color: "#6366f1", icon: "💻" },
+  });
+  console.log(`✓ 2 categories created`);
+
   // Courses
   const courseData = [
-    { teacherIdx: 0, title: "Introduction to Oil Painting", category: "ART" as const, mode: "OFFLINE" as const, weeks: 12, fee: 20000 },
-    { teacherIdx: 0, title: "Watercolor Techniques", category: "ART" as const, mode: "HYBRID" as const, weeks: 8, fee: 5000 },
-    { teacherIdx: 1, title: "Web Development with Laravel", category: "SOFTWARE" as const, mode: "OFFLINE" as const, weeks: 16, fee: 20000 },
-    { teacherIdx: 1, title: "JavaScript Full Stack", category: "SOFTWARE" as const, mode: "HYBRID" as const, weeks: 12, fee: 5000 },
-    { teacherIdx: 2, title: "UI/UX Design Fundamentals", category: "SOFTWARE" as const, mode: "OFFLINE" as const, weeks: 10, fee: 10000 },
-    { teacherIdx: 2, title: "Digital Illustration Masterclass", category: "ART" as const, mode: "ONLINE" as const, weeks: 8, fee: 8000 },
+    { teacherIdx: 0, title: "Introduction to Oil Painting", categoryId: artCategory.id, mode: "OFFLINE" as const, weeks: 12, fee: 20000 },
+    { teacherIdx: 0, title: "Watercolor Techniques", categoryId: artCategory.id, mode: "HYBRID" as const, weeks: 8, fee: 5000 },
+    { teacherIdx: 1, title: "Web Development with Laravel", categoryId: softwareCategory.id, mode: "OFFLINE" as const, weeks: 16, fee: 20000 },
+    { teacherIdx: 1, title: "JavaScript Full Stack", categoryId: softwareCategory.id, mode: "HYBRID" as const, weeks: 12, fee: 5000 },
+    { teacherIdx: 2, title: "UI/UX Design Fundamentals", categoryId: softwareCategory.id, mode: "OFFLINE" as const, weeks: 10, fee: 10000 },
+    { teacherIdx: 2, title: "Digital Illustration Masterclass", categoryId: artCategory.id, mode: "ONLINE" as const, weeks: 8, fee: 8000 },
   ];
 
   const courses = [];
@@ -78,7 +91,7 @@ async function main() {
         title: c.title,
         slug,
         description: `Comprehensive ${c.title.toLowerCase()} course designed for students at all levels. Learn from industry experts with hands-on practical projects.`,
-        category: c.category,
+        categoryId: c.categoryId,
         mode: c.mode,
         durationWeeks: c.weeks,
         feeAmount: c.fee,

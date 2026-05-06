@@ -5,10 +5,10 @@ import { CourseForm } from "../CourseForm";
 import { createCourse } from "../actions";
 
 export default async function CreateCoursePage() {
-  const teachers = await prisma.teacher.findMany({
-    include: { user: true },
-    orderBy: { user: { name: "asc" } },
-  });
+  const [teachers, categories] = await Promise.all([
+    prisma.teacher.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
+    prisma.category.findMany({ orderBy: [{ sortOrder: "asc" }, { name: "asc" }] }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -19,6 +19,7 @@ export default async function CreateCoursePage() {
       <div className="bg-white rounded-xl border border-gray-100 p-6 max-w-3xl">
         <CourseForm
           teachers={teachers.map((t) => ({ id: t.id, user: { name: t.user.name }, specialization: t.specialization }))}
+          categories={categories.map((c) => ({ id: c.id, name: c.name }))}
           action={createCourse}
           submitLabel="Create Course"
         />

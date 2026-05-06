@@ -29,7 +29,7 @@ export default async function CoursesPage({ searchParams }: Props) {
   const [courses, total] = await Promise.all([
     prisma.course.findMany({
       where,
-      include: { teacher: { include: { user: true } }, _count: { select: { enrollments: true } } },
+      include: { teacher: { include: { user: true } }, category: true, _count: { select: { enrollments: true } } },
       take: PER_PAGE,
       skip: (page - 1) * PER_PAGE,
       orderBy: { createdAt: "desc" },
@@ -79,7 +79,7 @@ export default async function CoursesPage({ searchParams }: Props) {
               {courses.map((c) => (
                 <tr key={c.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{c.title}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{c.category}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{c.category?.name || <span className="text-gray-300">—</span>}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{c.mode}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{c.teacher?.user.name || <span className="text-gray-300">—</span>}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(Number(c.feeAmount))}</td>

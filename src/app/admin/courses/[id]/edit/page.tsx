@@ -9,12 +9,10 @@ export default async function EditCoursePage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const courseId = parseInt(id, 10);
 
-  const [course, teachers] = await Promise.all([
+  const [course, teachers, categories] = await Promise.all([
     prisma.course.findUnique({ where: { id: courseId } }),
-    prisma.teacher.findMany({
-      include: { user: true },
-      orderBy: { user: { name: "asc" } },
-    }),
+    prisma.teacher.findMany({ include: { user: true }, orderBy: { user: { name: "asc" } } }),
+    prisma.category.findMany({ orderBy: [{ sortOrder: "asc" }, { name: "asc" }] }),
   ]);
 
   if (!course) notFound();
@@ -32,7 +30,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ id:
           initial={{
             title: course.title,
             description: course.description,
-            category: course.category,
+            categoryId: course.categoryId,
             mode: course.mode,
             durationWeeks: course.durationWeeks,
             feeAmount: Number(course.feeAmount),
@@ -41,6 +39,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ id:
             maxStudents: course.maxStudents,
           }}
           teachers={teachers.map((t) => ({ id: t.id, user: { name: t.user.name }, specialization: t.specialization }))}
+          categories={categories.map((c) => ({ id: c.id, name: c.name }))}
           action={updateAction}
           submitLabel="Update Course"
         />

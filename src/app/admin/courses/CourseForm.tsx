@@ -10,11 +10,16 @@ interface Teacher {
   specialization: string;
 }
 
+interface Category {
+  id: number;
+  name: string;
+}
+
 interface Props {
   initial?: {
     title: string;
     description: string;
-    category: string;
+    categoryId: number | null;
     mode: string;
     durationWeeks: number;
     feeAmount: number;
@@ -23,11 +28,12 @@ interface Props {
     maxStudents: number | null;
   };
   teachers: Teacher[];
+  categories: Category[];
   action: (formData: FormData) => Promise<{ error?: string } | void>;
   submitLabel: string;
 }
 
-export function CourseForm({ initial, teachers, action, submitLabel }: Props) {
+export function CourseForm({ initial, teachers, categories, action, submitLabel }: Props) {
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(formData: FormData) {
@@ -49,12 +55,18 @@ export function CourseForm({ initial, teachers, action, submitLabel }: Props) {
           <textarea name="description" rows={4} required defaultValue={initial?.description} className="mt-1 w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2 border" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Category *</label>
-          <select name="category" required defaultValue={initial?.category || ""} className="mt-1 w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2 border">
-            <option value="">Select</option>
-            <option value="ART">Art</option>
-            <option value="SOFTWARE">Software</option>
+          <label className="block text-sm font-medium text-gray-700">Category</label>
+          <select name="categoryId" defaultValue={initial?.categoryId ?? ""} className="mt-1 w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2 border">
+            <option value="">— None —</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
           </select>
+          {categories.length === 0 && (
+            <p className="text-xs text-amber-600 mt-1">
+              No categories yet. <Link href="/admin/categories/create" className="underline">Add one</Link>.
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Mode *</label>

@@ -26,11 +26,6 @@ enum Gender {
   OTHER
 }
 
-enum CourseCategory {
-  ART
-  SOFTWARE
-}
-
 enum CourseMode {
   ONLINE
   OFFLINE
@@ -174,29 +169,46 @@ model Teacher {
   teacherPayments TeacherPayment[]
 }
 
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  color       String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  courses Course[]
+
+  @@index([sortOrder])
+}
+
 model Course {
-  id            Int            @id @default(autoincrement())
+  id            Int          @id @default(autoincrement())
   title         String
-  slug          String         @unique
+  slug          String       @unique
   description   String
-  category      CourseCategory
+  categoryId    Int?
+  category      Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   mode          CourseMode
   durationWeeks Int
-  feeAmount     Decimal        @db.Decimal(10, 2)
+  feeAmount     Decimal      @db.Decimal(10, 2)
   teacherId     Int?
-  teacher       Teacher?       @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  teacher       Teacher?     @relation(fields: [teacherId], references: [id], onDelete: SetNull)
   thumbnail     String?
-  status        CourseStatus   @default(DRAFT)
+  status        CourseStatus @default(DRAFT)
   maxStudents   Int?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   enrollments    Enrollment[]
   classSessions  ClassSession[]
   materials      CourseMaterial[]
 
   @@index([status])
-  @@index([category])
+  @@index([categoryId])
 }
 
 model CourseMaterial {
