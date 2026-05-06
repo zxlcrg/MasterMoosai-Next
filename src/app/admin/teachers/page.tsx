@@ -67,7 +67,19 @@ export default async function TeachersPage({ searchParams }: Props) {
             <tbody className="divide-y divide-gray-100">
               {teachers.map((t) => (
                 <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{t.user.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center gap-3">
+                      {t.user.avatar ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={t.user.avatar} alt={t.user.name} className="w-9 h-9 rounded-full object-cover border border-gray-200" />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">{t.user.name.charAt(0)}</span>
+                        </div>
+                      )}
+                      <span className="text-sm font-medium text-gray-900">{t.user.name}</span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{t.user.email}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{t.specialization}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{t._count.courses}</td>

@@ -3,7 +3,8 @@ import { ChevronLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { TeacherForm } from "../../TeacherForm";
-import { updateTeacher } from "../../actions";
+import { AvatarUploader } from "../../AvatarUploader";
+import { updateTeacher, uploadTeacherAvatar, removeTeacherAvatar } from "../../actions";
 
 export default async function EditTeacherPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -24,6 +25,18 @@ export default async function EditTeacherPage({ params }: { params: Promise<{ id
         <ChevronLeft className="w-4 h-4 mr-1" /> Back to Teachers
       </Link>
       <h1 className="text-2xl font-bold text-gray-900 font-sans">Edit Teacher: {teacher.user.name}</h1>
+
+      <div className="bg-white rounded-xl border border-gray-100 p-6 max-w-3xl">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Profile Photo</h2>
+        <AvatarUploader
+          teacherId={teacherId}
+          name={teacher.user.name}
+          currentAvatar={teacher.user.avatar}
+          uploadAction={uploadTeacherAvatar}
+          removeAction={removeTeacherAvatar}
+        />
+      </div>
+
       <div className="bg-white rounded-xl border border-gray-100 p-6 max-w-3xl">
         <TeacherForm
           initial={{

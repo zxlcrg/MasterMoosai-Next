@@ -109,9 +109,14 @@ export default async function HomePage() {
                   <h3 className="text-lg font-bold text-dark font-sans mb-2">{course.title}</h3>
                   <p className="text-sm text-gray-500 line-clamp-2 mb-4">{course.description}</p>
                   <div className="flex items-center mb-4">
-                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-xs font-bold text-secondary mr-2">
-                      {course.teacher?.user?.name?.charAt(0) || "?"}
-                    </div>
+                    {course.teacher?.user?.avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={course.teacher.user.avatar} alt={course.teacher.user.name} className="w-8 h-8 rounded-full object-cover mr-2 border border-gray-100" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-xs font-bold text-secondary mr-2">
+                        {course.teacher?.user?.name?.charAt(0) || "?"}
+                      </div>
+                    )}
                     <span className="text-sm font-medium text-dark">{course.teacher?.user?.name || "TBA"}</span>
                   </div>
                   <div className="flex items-center justify-between pt-4 border-t border-gray-100">

@@ -133,9 +133,14 @@ export default async function CourseDetailPage({ params }: Props) {
             <div className="bg-white rounded-2xl shadow-sm p-8 max-w-3xl">
               <h2 className="text-sm font-bold uppercase tracking-wider text-gray-warm mb-4">Your Instructor</h2>
               <div className="flex items-start gap-5">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl" style={{ backgroundColor: accent }}>
-                  {course.teacher.user.name.charAt(0)}
-                </div>
+                {course.teacher.user.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={course.teacher.user.avatar} alt={course.teacher.user.name} className="w-16 h-16 rounded-full object-cover border-2" style={{ borderColor: accent }} />
+                ) : (
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl" style={{ backgroundColor: accent }}>
+                    {course.teacher.user.name.charAt(0)}
+                  </div>
+                )}
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-dark font-sans">{course.teacher.user.name}</h3>
                   <p className="text-sm text-gray-warm">{course.teacher.specialization}</p>
