@@ -87,8 +87,11 @@ export default async function CourseDetailPage({ params }: Props) {
             {/* Enroll card */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
-                <div className="text-3xl font-extrabold text-dark font-sans mb-1">{formatCurrency(Number(course.feeAmount))}</div>
-                <p className="text-xs text-gray-warm mb-6">Total course fee</p>
+                <div className="text-3xl font-extrabold text-dark font-sans mb-1">
+                  {formatCurrency(Number(course.feeAmount))}
+                  <span className="text-base font-normal text-gray-warm">/month</span>
+                </div>
+                <p className="text-xs text-gray-warm mb-6">Monthly fee</p>
 
                 {alreadyEnrolled ? (
                   <Link href="/student/dashboard" className="block w-full text-center py-3 px-4 bg-green-50 text-green-700 font-semibold rounded-full">
