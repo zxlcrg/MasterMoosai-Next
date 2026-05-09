@@ -60,24 +60,14 @@ export async function updateEnrollment(id: number, formData: FormData) {
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const data = parsed.data;
 
-  const current = await prisma.enrollment.findUnique({
-    where: { id },
-    include: { _count: { select: { payments: true } } },
-  });
+  const current = await prisma.enrollment.findUnique({ where: { id } });
   if (!current) return { error: "Enrollment not found." };
 
-  const isReassigning =
-    current.studentId !== data.studentId || current.courseId !== data.courseId;
-
-  // Block reassignment if there are payments tied to this enrollment.
-  if (isReassigning && current._count.payments > 0) {
-    return {
-      error: `Cannot change student or course on an enrollment with ${current._count.payments} payment(s). Delete the payments first or create a new enrollment.`,
-    };
-  }
+  const studentChanged = current.studentId !== data.studentId;
+  const courseChanged = current.courseId !== data.courseId;
 
   // Enforce unique (studentId, courseId) when reassigning.
-  if (isReassigning) {
+  if (studentChanged || courseChanged) {
     const conflict = await prisma.enrollment.findUnique({
       where: { studentId_courseId: { studentId: data.studentId, courseId: data.courseId } },
     });
@@ -94,19 +84,33 @@ export async function updateEnrollment(id: number, formData: FormData) {
     completedAt = current.completedAt || new Date();
   }
 
-  await prisma.enrollment.update({
-    where: { id },
-    data: {
-      studentId: data.studentId,
-      courseId: data.courseId,
-      status: data.status,
-      enrolledAt: new Date(data.enrolledAt),
-      completedAt,
-    },
+  // If the student changed, the denormalized studentId on every linked
+  // Payment row must follow. Wrap both updates in a transaction so the
+  // enrollment and its payments can never end up disagreeing.
+  await prisma.$transaction(async (tx) => {
+    await tx.enrollment.update({
+      where: { id },
+      data: {
+        studentId: data.studentId,
+        courseId: data.courseId,
+        status: data.status,
+        enrolledAt: new Date(data.enrolledAt),
+        completedAt,
+      },
+    });
+
+    if (studentChanged) {
+      await tx.payment.updateMany({
+        where: { enrollmentId: id },
+        data: { studentId: data.studentId },
+      });
+    }
   });
 
   revalidatePath("/admin/enrollments");
+  revalidatePath("/admin/payments");
   revalidatePath(`/admin/students/${data.studentId}/payments`);
+  if (studentChanged) revalidatePath(`/admin/students/${current.studentId}/payments`);
   redirect("/admin/enrollments");
 }
 

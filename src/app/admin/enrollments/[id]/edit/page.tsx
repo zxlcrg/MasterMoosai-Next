@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronLeft, Lock } from "lucide-react";
+import { ChevronLeft, Info } from "lucide-react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { updateEnrollment } from "../../actions";
@@ -30,7 +30,6 @@ export default async function EditEnrollmentPage({ params }: Props) {
 
   const updateAction = updateEnrollment.bind(null, enrollmentId);
   const paymentCount = enrollment._count.payments;
-  const reassignLocked = paymentCount > 0;
 
   const enrolledAtValue = enrollment.enrolledAt.toISOString().slice(0, 10);
   const completedAtValue = enrollment.completedAt
@@ -46,14 +45,14 @@ export default async function EditEnrollmentPage({ params }: Props) {
         Edit Enrollment: {enrollment.student.user.name} → {enrollment.course.title}
       </h1>
 
-      {reassignLocked && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 max-w-2xl flex items-start gap-3">
-          <Lock className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-          <div className="text-sm text-amber-800">
-            <p className="font-medium">Student and course are locked.</p>
-            <p className="text-amber-700 mt-0.5">
-              {paymentCount} payment{paymentCount === 1 ? "" : "s"} are linked to this enrollment.
-              To reassign, delete the payments or create a new enrollment.
+      {paymentCount > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 max-w-2xl flex items-start gap-3">
+          <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+          <div className="text-sm text-blue-800">
+            <p className="font-medium">{paymentCount} payment{paymentCount === 1 ? "" : "s"} linked to this enrollment.</p>
+            <p className="text-blue-700 mt-0.5">
+              If you change the student, every linked payment will be reassigned to the new student in the same transaction.
+              Already-printed invoices will not change retroactively — reprint them if needed.
             </p>
           </div>
         </div>
@@ -67,8 +66,7 @@ export default async function EditEnrollmentPage({ params }: Props) {
               name="studentId"
               required
               defaultValue={enrollment.studentId}
-              disabled={reassignLocked}
-              className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:bg-gray-50 disabled:text-gray-500"
+              className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
             >
               {students.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -84,8 +82,7 @@ export default async function EditEnrollmentPage({ params }: Props) {
               name="courseId"
               required
               defaultValue={enrollment.courseId}
-              disabled={reassignLocked}
-              className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:bg-gray-50 disabled:text-gray-500"
+              className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
             >
               {courses.map((c) => (
                 <option key={c.id} value={c.id}>
