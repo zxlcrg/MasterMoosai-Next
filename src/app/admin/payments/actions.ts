@@ -5,12 +5,18 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+] as const;
+
 const paymentSchema = z.object({
   enrollmentId: z.coerce.number().int(),
   amount: z.coerce.number().min(0),
   paymentDate: z.string().min(4),
   paymentMethod: z.enum(["CASH", "BANK_TRANSFER", "ONLINE"]).default("CASH"),
-  month: z.string().min(2),
+  monthName: z.enum(MONTH_NAMES),
+  year: z.coerce.number().int().min(2000).max(2100),
   status: z.enum(["PAID", "PENDING", "OVERDUE"]).default("PAID"),
   referenceNumber: z.string().optional().or(z.literal("")),
   notes: z.string().optional().or(z.literal("")),
@@ -22,7 +28,8 @@ export async function createPayment(formData: FormData) {
     amount: formData.get("amount"),
     paymentDate: formData.get("paymentDate"),
     paymentMethod: formData.get("paymentMethod"),
-    month: formData.get("month"),
+    monthName: formData.get("monthName"),
+    year: formData.get("year"),
     status: formData.get("status"),
     referenceNumber: formData.get("referenceNumber"),
     notes: formData.get("notes"),
@@ -33,14 +40,9 @@ export async function createPayment(formData: FormData) {
   const enrollment = await prisma.enrollment.findUnique({ where: { id: data.enrollmentId } });
   if (!enrollment) return { error: "Enrollment not found." };
 
-  // Convert "2026-05" (from <input type="month">) → "May 2026" to match
-  // existing storage format. Free-text inputs pass through unchanged.
-  const isoMonth = /^(\d{4})-(\d{2})$/.exec(data.month);
-  const monthLabel = isoMonth
-    ? `${new Date(Number(isoMonth[1]), Number(isoMonth[2]) - 1, 1).toLocaleString("en-US", { month: "long" })} ${isoMonth[1]}`
-    : data.month;
+  const monthLabel = `${data.monthName} ${data.year}`;
 
-  await prisma.payment.create({
+  const payment = await prisma.payment.create({
     data: {
       enrollmentId: data.enrollmentId,
       studentId: enrollment.studentId,
@@ -55,7 +57,7 @@ export async function createPayment(formData: FormData) {
   });
 
   revalidatePath("/admin/payments");
-  redirect("/admin/payments");
+  redirect(`/admin/payments/${payment.id}/invoice`);
 }
 
 export async function deletePayment(id: number) {

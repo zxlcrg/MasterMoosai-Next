@@ -30,7 +30,7 @@ export async function createTeacherPayment(formData: FormData) {
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const data = parsed.data;
 
-  await prisma.teacherPayment.create({
+  const payment = await prisma.teacherPayment.create({
     data: {
       teacherId: data.teacherId,
       amount: data.amount,
@@ -44,7 +44,7 @@ export async function createTeacherPayment(formData: FormData) {
   });
 
   revalidatePath("/admin/teacher-payments");
-  redirect("/admin/teacher-payments");
+  redirect(`/admin/teacher-payments/${payment.id}/invoice`);
 }
 
 export async function deleteTeacherPayment(id: number) {

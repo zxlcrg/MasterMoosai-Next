@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, FileText } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Pagination } from "@/components/shared/Pagination";
 import { DeleteTeacherPaymentButton } from "./DeleteTeacherPaymentButton";
@@ -78,7 +78,16 @@ export default async function TeacherPaymentsPage({ searchParams }: Props) {
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge(p.status)}`}>{p.status}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <DeleteTeacherPaymentButton id={p.id} label={`${p.teacher.user.name} — ${formatCurrency(Number(p.amount))}`} />
+                    <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`/admin/teacher-payments/${p.id}/invoice`}
+                        title="View voucher"
+                        className="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </Link>
+                      <DeleteTeacherPaymentButton id={p.id} label={`${p.teacher.user.name} — ${formatCurrency(Number(p.amount))}`} />
+                    </div>
                   </td>
                 </tr>
               ))}
