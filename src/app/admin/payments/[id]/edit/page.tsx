@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { updatePayment } from "../../actions";
 import { formatCurrency } from "@/lib/utils";
+import { DatePicker } from "@/components/shared/DatePicker";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -99,13 +100,7 @@ export default async function EditPaymentPage({ params }: Props) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Payment Date</label>
-              <input
-                name="paymentDate"
-                type="date"
-                required
-                defaultValue={paymentDateValue}
-                className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-              />
+              <DatePicker name="paymentDate" required defaultValue={paymentDateValue} />
             </div>
           </div>
 

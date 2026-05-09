@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { updateEnrollment } from "../../actions";
 import { formatCurrency } from "@/lib/utils";
+import { DatePicker } from "@/components/shared/DatePicker";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -108,24 +109,13 @@ export default async function EditEnrollmentPage({ params }: Props) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Enrolled On</label>
-              <input
-                name="enrolledAt"
-                type="date"
-                required
-                defaultValue={enrolledAtValue}
-                className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-              />
+              <DatePicker name="enrolledAt" required defaultValue={enrolledAtValue} />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Completed On <span className="text-gray-400">(optional)</span>
               </label>
-              <input
-                name="completedAt"
-                type="date"
-                defaultValue={completedAtValue}
-                className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-              />
+              <DatePicker name="completedAt" defaultValue={completedAtValue} />
               <p className="text-xs text-gray-400 mt-1">Auto-set when status is Completed and left blank.</p>
             </div>
           </div>

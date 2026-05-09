@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { DatePicker } from "@/components/shared/DatePicker";
 
 interface Props {
   action: (formData: FormData) => Promise<{ error: string } | void>;
@@ -82,7 +83,7 @@ export function CreateUserForm({ action }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Date of Birth</label>
-              <input name="dateOfBirth" type="date" className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" />
+              <DatePicker name="dateOfBirth" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Gender</label>

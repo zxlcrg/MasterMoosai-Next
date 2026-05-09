@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { DatePicker } from "@/components/shared/DatePicker";
 
 interface StudentFormProps {
   initial?: {
@@ -75,11 +76,10 @@ export function StudentForm({ initial, action, submitLabel }: StudentFormProps) 
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
-          <input
+          <DatePicker
             name="dateOfBirth"
-            type="date"
             defaultValue={initial?.dateOfBirth ? new Date(initial.dateOfBirth).toISOString().split("T")[0] : ""}
-            className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-3 py-2 border"
+            className="mt-1"
           />
         </div>
         <div>

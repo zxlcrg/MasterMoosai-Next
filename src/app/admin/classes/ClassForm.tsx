@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DatePicker } from "@/components/shared/DatePicker";
 
 interface Props {
   initial?: {
@@ -40,7 +41,7 @@ export function ClassForm({ initial, courses, action, submitLabel }: Props) {
       <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Date</label>
-          <input name="date" type="date" defaultValue={dateValue} required className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" />
+          <DatePicker name="date" defaultValue={dateValue} required />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Start Time</label>

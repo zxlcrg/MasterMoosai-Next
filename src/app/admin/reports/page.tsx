@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { TrendingUp, TrendingDown, Users, BookOpen, AlertCircle, CheckCircle, Wallet, Calendar } from "lucide-react";
 import type { PaymentStatus } from "@prisma/client";
+import { DatePicker } from "@/components/shared/DatePicker";
 
 type Preset = "all" | "this-month" | "last-month" | "this-year" | "custom";
 
@@ -171,21 +172,11 @@ export default async function ReportsPage({ searchParams }: Props) {
             <input type="hidden" name="preset" value="custom" />
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">From</label>
-              <input
-                type="date"
-                name="from"
-                defaultValue={range.fromValue}
-                className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-              />
+              <DatePicker name="from" defaultValue={range.fromValue} />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">To</label>
-              <input
-                type="date"
-                name="to"
-                defaultValue={range.toValue}
-                className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-              />
+              <DatePicker name="to" defaultValue={range.toValue} />
             </div>
             <button
               type="submit"
