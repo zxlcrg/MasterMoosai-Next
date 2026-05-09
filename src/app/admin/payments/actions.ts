@@ -33,6 +33,13 @@ export async function createPayment(formData: FormData) {
   const enrollment = await prisma.enrollment.findUnique({ where: { id: data.enrollmentId } });
   if (!enrollment) return { error: "Enrollment not found." };
 
+  // Convert "2026-05" (from <input type="month">) → "May 2026" to match
+  // existing storage format. Free-text inputs pass through unchanged.
+  const isoMonth = /^(\d{4})-(\d{2})$/.exec(data.month);
+  const monthLabel = isoMonth
+    ? `${new Date(Number(isoMonth[1]), Number(isoMonth[2]) - 1, 1).toLocaleString("en-US", { month: "long" })} ${isoMonth[1]}`
+    : data.month;
+
   await prisma.payment.create({
     data: {
       enrollmentId: data.enrollmentId,
@@ -40,7 +47,7 @@ export async function createPayment(formData: FormData) {
       amount: data.amount,
       paymentDate: new Date(data.paymentDate),
       paymentMethod: data.paymentMethod,
-      month: data.month,
+      month: monthLabel,
       status: data.status,
       referenceNumber: data.referenceNumber || null,
       notes: data.notes || null,
