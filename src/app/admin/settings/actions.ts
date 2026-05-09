@@ -63,6 +63,7 @@ export async function uploadLogo(formData: FormData) {
   await setSetting("logo", blob.url);
   revalidatePath("/admin/settings");
   revalidatePath("/", "layout");
+  revalidatePwaIcons();
   return { success: "Logo uploaded" };
 }
 
@@ -74,5 +75,12 @@ export async function removeLogo() {
   }
   revalidatePath("/admin/settings");
   revalidatePath("/", "layout");
+  revalidatePwaIcons();
   return { success: "Logo removed" };
+}
+
+function revalidatePwaIcons() {
+  for (const p of ["/icon-192.png", "/icon-512.png", "/apple-touch-icon.png", "/favicon-32.png"]) {
+    revalidatePath(p);
+  }
 }
