@@ -94,11 +94,12 @@ model User {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
-  student       Student?
-  teacher       Teacher?
-  notifications Notification[]
-  sessions      Session[]
-  accounts      Account[]
+  student         Student?
+  teacher         Teacher?
+  notifications   Notification[]
+  sessions        Session[]
+  accounts        Account[]
+  expensesCreated Expense[]      @relation("ExpenseCreatedBy")
 }
 
 model Account {
@@ -334,4 +335,41 @@ model Setting {
   value     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ExpenseCategory {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  color       String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  expenses Expense[]
+
+  @@index([sortOrder])
+}
+
+model Expense {
+  id              Int             @id @default(autoincrement())
+  categoryId      Int
+  category        ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  title           String
+  description     String?
+  amount          Decimal         @db.Decimal(10, 2)
+  expenseDate     DateTime
+  paymentMethod   PaymentMethod   @default(CASH)
+  paidByName      String?
+  referenceNumber String?
+  notes           String?
+  createdById     Int
+  createdBy       User            @relation("ExpenseCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([expenseDate])
+  @@index([categoryId])
 }

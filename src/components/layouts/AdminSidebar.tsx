@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   LayoutGrid, Users, GraduationCap, BookOpen, Tag, ClipboardList, DollarSign,
-  Banknote, Calendar, BarChart3, Shield, Settings, ChevronsLeft
+  Banknote, Calendar, BarChart3, Shield, Settings, ChevronsLeft, Receipt, Wallet
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,8 @@ const navItems = [
   { href: "/admin/enrollments", label: "Enrollments", Icon: ClipboardList },
   { href: "/admin/payments", label: "Payments", Icon: DollarSign },
   { href: "/admin/teacher-payments", label: "Teacher Pay", Icon: Banknote },
+  { href: "/admin/expenses", label: "Expenses", Icon: Wallet },
+  { href: "/admin/expense-categories", label: "Expense Categories", Icon: Receipt },
   { href: "/admin/classes", label: "Classes", Icon: Calendar },
 ];
 
