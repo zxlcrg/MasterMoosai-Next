@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { SearchFilter } from "@/components/shared/SearchFilter";
 import { Pagination } from "@/components/shared/Pagination";
@@ -80,6 +80,13 @@ export default async function EnrollmentsPage({ searchParams }: Props) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                     <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`/admin/enrollments/${e.id}/edit`}
+                        title="Edit"
+                        className="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Link>
                       <DeleteEnrollmentButton id={e.id} label={`${e.student.user.name} → ${e.course.title}`} />
                     </div>
                   </td>
