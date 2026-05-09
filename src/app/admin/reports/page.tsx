@@ -1,8 +1,89 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { formatCurrency } from "@/lib/utils";
-import { TrendingUp, TrendingDown, Users, BookOpen, AlertCircle, CheckCircle, Wallet } from "lucide-react";
+import { formatCurrency, formatDate } from "@/lib/utils";
+import { TrendingUp, TrendingDown, Users, BookOpen, AlertCircle, CheckCircle, Wallet, Calendar } from "lucide-react";
+import type { PaymentStatus } from "@prisma/client";
 
-export default async function ReportsPage() {
+type Preset = "all" | "this-month" | "last-month" | "this-year" | "custom";
+
+interface Range {
+  from?: Date;
+  to?: Date;
+  label: string;
+  preset: Preset;
+  fromValue: string; // YYYY-MM-DD or ""
+  toValue: string;
+}
+
+function startOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+function endOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(23, 59, 59, 999);
+  return x;
+}
+function ymd(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
+function resolveRange(params: { from?: string; to?: string; preset?: string }): Range {
+  const now = new Date();
+  const preset = (params.preset as Preset) || (params.from || params.to ? "custom" : "all");
+
+  if (preset === "this-month") {
+    const from = new Date(now.getFullYear(), now.getMonth(), 1);
+    const to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    return { from, to, label: `${now.toLocaleString("en-US", { month: "long", year: "numeric" })}`, preset, fromValue: ymd(from), toValue: ymd(to) };
+  }
+  if (preset === "last-month") {
+    const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const to = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    return { from, to, label: `${from.toLocaleString("en-US", { month: "long", year: "numeric" })}`, preset, fromValue: ymd(from), toValue: ymd(to) };
+  }
+  if (preset === "this-year") {
+    const from = new Date(now.getFullYear(), 0, 1);
+    const to = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+    return { from, to, label: `${now.getFullYear()}`, preset, fromValue: ymd(from), toValue: ymd(to) };
+  }
+  if (preset === "custom") {
+    const from = params.from ? startOfDay(new Date(params.from)) : undefined;
+    const to = params.to ? endOfDay(new Date(params.to)) : undefined;
+    let label = "Custom range";
+    if (from && to) label = `${formatDate(from)} – ${formatDate(to)}`;
+    else if (from) label = `From ${formatDate(from)}`;
+    else if (to) label = `Until ${formatDate(to)}`;
+    return { from, to, label, preset, fromValue: params.from || "", toValue: params.to || "" };
+  }
+  return { label: "All time", preset: "all", fromValue: "", toValue: "" };
+}
+
+function dateFilter(field: string, range: Range) {
+  if (!range.from && !range.to) return undefined;
+  const filter: any = {};
+  if (range.from) filter.gte = range.from;
+  if (range.to) filter.lte = range.to;
+  return { [field]: filter };
+}
+
+interface Props {
+  searchParams: Promise<{ from?: string; to?: string; preset?: string }>;
+}
+
+export default async function ReportsPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const range = resolveRange(params);
+
+  const paymentDateFilter = dateFilter("paymentDate", range);
+  const expenseDateFilter = dateFilter("expenseDate", range);
+  const enrolledAtFilter = dateFilter("enrolledAt", range);
+
+  const paymentWhere = (status: PaymentStatus) => ({ status, ...(paymentDateFilter || {}) });
+  const expenseWhere = expenseDateFilter || {};
+  const enrollmentWhere = enrolledAtFilter || {};
+
   const [
     totalRevenue,
     totalPaidOut,
@@ -14,41 +95,107 @@ export default async function ReportsPage() {
     expenseCategories,
     topCourses,
   ] = await Promise.all([
-    prisma.payment.aggregate({ where: { status: "PAID" }, _sum: { amount: true } }),
-    prisma.teacherPayment.aggregate({ where: { status: "PAID" }, _sum: { amount: true } }),
-    prisma.expense.aggregate({ _sum: { amount: true }, _count: true }),
-    prisma.payment.aggregate({ where: { status: "PENDING" }, _sum: { amount: true }, _count: true }),
-    prisma.payment.aggregate({ where: { status: "OVERDUE" }, _sum: { amount: true }, _count: true }),
-    prisma.enrollment.groupBy({ by: ["status"], _count: true }),
+    prisma.payment.aggregate({ where: paymentWhere("PAID"), _sum: { amount: true } }),
+    prisma.teacherPayment.aggregate({ where: paymentWhere("PAID"), _sum: { amount: true } }),
+    prisma.expense.aggregate({ where: expenseWhere, _sum: { amount: true }, _count: { _all: true } }),
+    prisma.payment.aggregate({ where: paymentWhere("PENDING"), _sum: { amount: true }, _count: { _all: true } }),
+    prisma.payment.aggregate({ where: paymentWhere("OVERDUE"), _sum: { amount: true }, _count: { _all: true } }),
+    prisma.enrollment.groupBy({ by: ["status"], where: enrollmentWhere, _count: { _all: true } }),
     prisma.expense.groupBy({
       by: ["categoryId"],
+      where: expenseWhere,
       _sum: { amount: true },
-      _count: true,
+      _count: { _all: true },
       orderBy: { _sum: { amount: "desc" } },
     }),
     prisma.expenseCategory.findMany({ select: { id: true, name: true, icon: true, color: true } }),
     prisma.course.findMany({
-      include: { _count: { select: { enrollments: true } }, teacher: { include: { user: true } } },
+      include: {
+        _count: {
+          select: enrolledAtFilter
+            ? { enrollments: { where: enrolledAtFilter } }
+            : { enrollments: true },
+        },
+        teacher: { include: { user: true } },
+      },
       orderBy: { enrollments: { _count: "desc" } },
       take: 5,
     }),
   ]);
 
-  const revenue = Number(totalRevenue._sum.amount || 0);
-  const paidOut = Number(totalPaidOut._sum.amount || 0);
-  const expenses = Number(totalExpenses._sum.amount || 0);
+  const revenue = Number(totalRevenue._sum?.amount || 0);
+  const paidOut = Number(totalPaidOut._sum?.amount || 0);
+  const expenses = Number(totalExpenses._sum?.amount || 0);
   const netProfit = revenue - paidOut - expenses;
   const categoryById = new Map(expenseCategories.map((c) => [c.id, c]));
   const expensesBreakdown = expensesByCategory.map((e) => ({
     category: categoryById.get(e.categoryId),
     amount: Number(e._sum.amount || 0),
-    count: e._count,
+    count: e._count._all,
     pct: expenses > 0 ? (Number(e._sum.amount || 0) / expenses) * 100 : 0,
   }));
 
+  const presetChip = (preset: Preset, label: string) => (
+    <Link
+      href={preset === "all" ? "/admin/reports" : `/admin/reports?preset=${preset}`}
+      className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
+        range.preset === preset
+          ? "bg-indigo-600 text-white border-indigo-600"
+          : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300"
+      }`}
+    >
+      {label}
+    </Link>
+  );
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 font-sans">Reports</h1>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 font-sans">Reports</h1>
+          <p className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
+            <Calendar className="w-4 h-4" /> {range.label}
+          </p>
+        </div>
+      </div>
+
+      {/* Date range filter */}
+      <div className="bg-white rounded-xl border border-gray-100 p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          {presetChip("all", "All time")}
+          {presetChip("this-month", "This month")}
+          {presetChip("last-month", "Last month")}
+          {presetChip("this-year", "This year")}
+
+          <form method="GET" className="flex flex-wrap items-end gap-2 ml-auto">
+            <input type="hidden" name="preset" value="custom" />
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">From</label>
+              <input
+                type="date"
+                name="from"
+                defaultValue={range.fromValue}
+                className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">To</label>
+              <input
+                type="date"
+                name="to"
+                defaultValue={range.toValue}
+                className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
+            <button
+              type="submit"
+              className="px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700"
+            >
+              Apply
+            </button>
+          </form>
+        </div>
+      </div>
 
       {/* Financial overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -82,7 +229,7 @@ export default async function ReportsPage() {
             <p className="text-sm font-medium text-gray-500">Operating Expenses</p>
           </div>
           <p className="text-3xl font-bold text-gray-900">{formatCurrency(expenses)}</p>
-          <p className="text-xs text-gray-400 mt-1">{totalExpenses._count} expense{totalExpenses._count === 1 ? "" : "s"} recorded</p>
+          <p className="text-xs text-gray-400 mt-1">{totalExpenses._count._all} expense{totalExpenses._count._all === 1 ? "" : "s"} recorded</p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-100 p-6">
@@ -106,8 +253,8 @@ export default async function ReportsPage() {
             </div>
             <p className="text-sm font-medium text-gray-500">Pending Payments</p>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{formatCurrency(Number(pendingPayments._sum.amount || 0))}</p>
-          <p className="text-xs text-gray-400 mt-1">{pendingPayments._count} payments awaiting</p>
+          <p className="text-2xl font-bold text-gray-900">{formatCurrency(Number(pendingPayments._sum?.amount || 0))}</p>
+          <p className="text-xs text-gray-400 mt-1">{pendingPayments._count._all} payments awaiting</p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-100 p-6">
@@ -117,8 +264,8 @@ export default async function ReportsPage() {
             </div>
             <p className="text-sm font-medium text-gray-500">Overdue Payments</p>
           </div>
-          <p className="text-2xl font-bold text-red-700">{formatCurrency(Number(overduePayments._sum.amount || 0))}</p>
-          <p className="text-xs text-gray-400 mt-1">{overduePayments._count} payments overdue</p>
+          <p className="text-2xl font-bold text-red-700">{formatCurrency(Number(overduePayments._sum?.amount || 0))}</p>
+          <p className="text-xs text-gray-400 mt-1">{overduePayments._count._all} payments overdue</p>
         </div>
       </div>
 
@@ -128,9 +275,9 @@ export default async function ReportsPage() {
           <Users className="w-5 h-5 text-gray-400" /> Enrollment Status
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {["PENDING", "ACTIVE", "COMPLETED", "DROPPED"].map((status) => {
+          {(["PENDING", "ACTIVE", "COMPLETED", "DROPPED"] as const).map((status) => {
             const item = enrollmentsByStatus.find((e) => e.status === status);
-            const count = item?._count || 0;
+            const count = item?._count._all || 0;
             const colors: Record<string, string> = {
               PENDING: "bg-amber-50 text-amber-700",
               ACTIVE: "bg-green-50 text-green-700",
@@ -153,7 +300,7 @@ export default async function ReportsPage() {
           <Wallet className="w-5 h-5 text-gray-400" /> Expenses by Category
         </h2>
         {expensesBreakdown.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-4">No expenses recorded yet.</p>
+          <p className="text-sm text-gray-400 text-center py-4">No expenses in this range.</p>
         ) : (
           <div className="space-y-3">
             {expensesBreakdown.map((row) => {
