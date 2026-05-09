@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, FileText } from "lucide-react";
+import { Plus, FileText, Pencil } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Pagination } from "@/components/shared/Pagination";
 import { DeleteTeacherPaymentButton } from "./DeleteTeacherPaymentButton";
@@ -85,6 +85,13 @@ export default async function TeacherPaymentsPage({ searchParams }: Props) {
                         className="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
                       >
                         <FileText className="w-4 h-4" />
+                      </Link>
+                      <Link
+                        href={`/admin/teacher-payments/${p.id}/edit`}
+                        title="Edit"
+                        className="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                      >
+                        <Pencil className="w-4 h-4" />
                       </Link>
                       <DeleteTeacherPaymentButton id={p.id} label={`${p.teacher.user.name} — ${formatCurrency(Number(p.amount))}`} />
                     </div>

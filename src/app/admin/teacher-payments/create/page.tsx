@@ -3,6 +3,11 @@ import { ChevronLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { createTeacherPayment } from "../actions";
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+] as const;
+
 export default async function CreateTeacherPaymentPage() {
   const teachers = await prisma.teacher.findMany({
     include: { user: true },
@@ -11,7 +16,9 @@ export default async function CreateTeacherPaymentPage() {
 
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
-  const currentMonth = `${now.toLocaleString("en-US", { month: "long" })} ${now.getFullYear()}`;
+  const currentMonthIndex = now.getMonth();
+  const currentYear = now.getFullYear();
+  const yearOptions = Array.from({ length: 7 }, (_, i) => currentYear - 3 + i);
 
   return (
     <div className="space-y-6">
@@ -42,10 +49,22 @@ export default async function CreateTeacherPaymentPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Month</label>
-              <input name="month" type="text" defaultValue={currentMonth} required className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" />
+              <select name="monthName" required defaultValue={MONTH_NAMES[currentMonthIndex]} className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20">
+                {MONTH_NAMES.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Year</label>
+              <select name="year" required defaultValue={String(currentYear)} className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20">
+                {yearOptions.map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Method</label>
