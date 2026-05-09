@@ -13,7 +13,13 @@ export default async function CreatePaymentPage() {
 
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
-  const currentMonth = today.slice(0, 7); // YYYY-MM for <input type="month">
+  const currentMonthIndex = now.getMonth();
+  const currentYear = now.getFullYear();
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+  const yearOptions = Array.from({ length: 7 }, (_, i) => currentYear - 3 + i);
 
 
   return (
@@ -47,10 +53,22 @@ export default async function CreatePaymentPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Month</label>
-              <input name="month" type="month" defaultValue={currentMonth} required className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" />
+              <select name="monthName" defaultValue={monthNames[currentMonthIndex]} required className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20">
+                {monthNames.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Year</label>
+              <select name="year" defaultValue={String(currentYear)} required className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20">
+                {yearOptions.map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Method</label>

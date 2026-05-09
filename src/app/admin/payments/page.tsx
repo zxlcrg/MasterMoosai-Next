@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, FileText } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { SearchFilter } from "@/components/shared/SearchFilter";
 import { Pagination } from "@/components/shared/Pagination";
@@ -93,7 +93,16 @@ export default async function PaymentsPage({ searchParams }: Props) {
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge(p.status)}`}>{p.status}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <DeletePaymentButton id={p.id} label={`${p.student.user.name} — ${formatCurrency(Number(p.amount))}`} />
+                    <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`/admin/payments/${p.id}/invoice`}
+                        title="View invoice"
+                        className="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </Link>
+                      <DeletePaymentButton id={p.id} label={`${p.student.user.name} — ${formatCurrency(Number(p.amount))}`} />
+                    </div>
                   </td>
                 </tr>
               ))}

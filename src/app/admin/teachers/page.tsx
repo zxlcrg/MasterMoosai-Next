@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, Wallet } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { SearchFilter } from "@/components/shared/SearchFilter";
 import { Pagination } from "@/components/shared/Pagination";
@@ -74,6 +74,9 @@ export default async function TeachersPage({ searchParams }: Props) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{t.experienceYears} yrs</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                     <div className="flex items-center justify-end gap-1">
+                      <Link href={`/admin/teachers/${t.id}/payments`} title="Payment history" className="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50">
+                        <Wallet className="w-4 h-4" />
+                      </Link>
                       <Link href={`/admin/teachers/${t.id}/edit`} title="Edit" className="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50">
                         <Pencil className="w-4 h-4" />
                       </Link>
