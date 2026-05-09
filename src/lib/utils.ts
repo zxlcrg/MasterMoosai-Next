@@ -18,11 +18,15 @@ export function formatCurrency(amount: number | string | null | undefined): stri
 export function formatDate(date: Date | string | null | undefined): string {
   if (!date) return "-";
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  if (Number.isNaN(d.getTime())) return "-";
+  // Always render dates as DD/MM/YYYY across the app, regardless of browser
+  // locale. Native <input type="date"> pickers still show in the user's
+  // system locale; their underlying value stays YYYY-MM-DD which is what
+  // server-side parsers expect.
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
 }
 
 export function formatMonth(month: string): string {

@@ -64,9 +64,9 @@ export default async function DashboardPage() {
   const session = await auth();
   const { stats, recentEnrollments, recentExpenses } = await getDashboardData();
 
-  const currentDate = new Date().toLocaleDateString("en-US", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
-  });
+  const today = new Date();
+  const weekday = today.toLocaleDateString("en-US", { weekday: "long" });
+  const currentDate = `${weekday}, ${formatDate(today)}`;
 
   return (
     <div className="space-y-6">
