@@ -60,6 +60,59 @@ export async function createPayment(formData: FormData) {
   redirect(`/admin/payments/${payment.id}/invoice`);
 }
 
+export async function updatePayment(id: number, formData: FormData) {
+  const parsed = paymentSchema.safeParse({
+    enrollmentId: formData.get("enrollmentId"),
+    amount: formData.get("amount"),
+    paymentDate: formData.get("paymentDate"),
+    paymentMethod: formData.get("paymentMethod"),
+    monthName: formData.get("monthName"),
+    year: formData.get("year"),
+    status: formData.get("status"),
+    referenceNumber: formData.get("referenceNumber"),
+    notes: formData.get("notes"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const data = parsed.data;
+
+  const current = await prisma.payment.findUnique({ where: { id } });
+  if (!current) return { error: "Payment not found." };
+
+  // If admin reassigns this payment to a different enrollment, the
+  // denormalized studentId on the payment must follow.
+  let studentId = current.studentId;
+  if (data.enrollmentId !== current.enrollmentId) {
+    const enrollment = await prisma.enrollment.findUnique({ where: { id: data.enrollmentId } });
+    if (!enrollment) return { error: "Enrollment not found." };
+    studentId = enrollment.studentId;
+  }
+
+  const monthLabel = `${data.monthName} ${data.year}`;
+
+  await prisma.payment.update({
+    where: { id },
+    data: {
+      enrollmentId: data.enrollmentId,
+      studentId,
+      amount: data.amount,
+      paymentDate: new Date(data.paymentDate),
+      paymentMethod: data.paymentMethod,
+      month: monthLabel,
+      status: data.status,
+      referenceNumber: data.referenceNumber || null,
+      notes: data.notes || null,
+    },
+  });
+
+  revalidatePath("/admin/payments");
+  revalidatePath(`/admin/payments/${id}/invoice`);
+  revalidatePath(`/admin/students/${studentId}/payments`);
+  if (studentId !== current.studentId) {
+    revalidatePath(`/admin/students/${current.studentId}/payments`);
+  }
+  redirect("/admin/payments");
+}
+
 export async function deletePayment(id: number) {
   await prisma.payment.delete({ where: { id } });
   revalidatePath("/admin/payments");
